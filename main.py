@@ -29,22 +29,26 @@ async def liste_livre():
     return data
 
 
-
-
-
 #contenu d'un livre
 @app.get("/livres/{nom_livre}",status_code=status.HTTP_200_OK)
 async def contenu_livre(nom_livre:Annotated[str,Path()]):
-    
-    TT= Testamenta_Taloha / f"{nom_livre}.json"
-    TV=Testamenta_Vaovao / f"{nom_livre}.json"
-    
-    if TV.exists():
-        with open (TV,encoding="utf-8") as tv:
-            data =json.load(tv)
-    if TT.exists():
-        with open (TT,encoding="utf-8") as tt:
-            data =json.load(tt)
-    if not (TT.exists()) and not(TV.exists()):
-        raise HTTPException(status_code=404,detail="livre non trouvé")
-    return data # type: ignore
+    def trouver_titre (dossier,nom):
+        for f in sorted(dossier.iterdir()):
+            if f.is_dir():
+                trouver_titre(f,nom)
+            elif f.is_file():
+                with open (f.absolute(),encoding="utf-8") as l:
+                    livre=json.load(l)
+                    anarana=livre["meta"]["name"].lower().replace(" ","")
+                if anarana == nom :
+                    premier_chapitre =livre["1"]
+                    return premier_chapitre
+        return False
+    nom_livre=nom_livre.lower().replace(" ","")
+    data=trouver_titre(baiboly,nom_livre)
+    if data==False:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre non trouvé")
+    return data
+                    
+
+            

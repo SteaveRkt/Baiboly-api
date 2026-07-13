@@ -15,7 +15,7 @@ Testamenta_Vaovao = Path("baiboly-json/Testameta vaovao")
 async def liste_livre():
     data : List[Dict[str,Any]]=[]
     for f in baiboly.rglob("*.json"):
-        with open(f.absolute(),encoding="utf-8") as b:
+        with open(f,encoding="utf-8") as b:
             boky=json.load(b)
             anarana=boky["meta"]["name"]
             dic:Dict[str,Any]={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"]}

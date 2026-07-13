@@ -22,7 +22,7 @@ async def liste_livre():
                 with open(f.absolute(),encoding="utf-8") as b:
                     boky=json.load(b)
                     anarana=boky["meta"]["name"]
-                dic={"id":(boky["meta"]["order"]),"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"]}
+                dic={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"]}
                 data.append(dic)
     parcours(baiboly)
     data=sorted(data,key=lambda x:x["id"])

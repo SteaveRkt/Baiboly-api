@@ -14,17 +14,12 @@ Testamenta_Vaovao = Path("baiboly-json/Testameta vaovao")
 @app.get("/livres",status_code=status.HTTP_200_OK)
 async def liste_livre():
     data : List[Dict[str,Any]]=[]
-    def parcours(dossier): 
-        for f in sorted(dossier.iterdir()):
-            if f.is_dir(): 
-                parcours(f) 
-            elif f.is_file(): 
-                with open(f.absolute(),encoding="utf-8") as b:
-                    boky=json.load(b)
-                    anarana=boky["meta"]["name"]
-                dic={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"]}
-                data.append(dic)
-    parcours(Path(baiboly))
+    for f in baiboly.rglob("*.json"):
+        with open(f.absolute(),encoding="utf-8") as b:
+            boky=json.load(b)
+            anarana=boky["meta"]["name"]
+            dic:Dict[str,Any]={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"]}
+            data.append(dic)
     data=sorted(data,key=lambda x:x["id"])#for x in data return x["id"]
     return data
 

@@ -35,12 +35,14 @@ async def contenu_livre(nom_livre:Annotated[str,Path()]):
     def trouver_titre (dossier,nom):
         for f in sorted(dossier.iterdir()):
             if f.is_dir():
-                trouver_titre(f,nom)
+                res=trouver_titre(f,nom)
+                if res is not False:
+                    return res
             elif f.is_file():
                 with open (f.absolute(),encoding="utf-8") as l:
                     livre=json.load(l)
                     anarana=livre["meta"]["name"].lower().replace(" ","")
-                if anarana == nom :
+                if nom in anarana :
                     premier_chapitre =livre["1"]
                     return premier_chapitre
         return False

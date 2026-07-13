@@ -1,5 +1,5 @@
 from typing import Annotated,List,Dict,Any
-from fastapi import FastAPI, HTTPException,Path
+from fastapi import FastAPI, HTTPException,Path,Query
 from pathlib import Path
 from starlette import status
 import json
@@ -7,11 +7,9 @@ import json
 app = FastAPI()
 
 baiboly=Path("baiboly-json")
-Testamenta_Taloha = Path("baiboly-json/Testameta taloha")
-Testamenta_Vaovao = Path("baiboly-json/Testameta vaovao")
 
 #liste des livres
-@app.get("/livres",status_code=status.HTTP_200_OK)
+@app.get("/liste",status_code=status.HTTP_200_OK)
 async def liste_livre():
     data : List[Dict[str,Any]]=[]
     for f in baiboly.rglob("*.json"):
@@ -24,9 +22,9 @@ async def liste_livre():
     return data
 
 
-#contenu d'un livre
-@app.get("/livres/{nom_livre}",status_code=status.HTTP_200_OK)
-async def contenu_livre(nom_livre:Annotated[str,Path()]):
+#premier chapitre d'un livre
+@app.get("/livre",status_code=status.HTTP_200_OK)
+async def contenu_livre(nom_livre:Annotated[str,Query(min_length=2)]):
     nom_livre=nom_livre.lower().replace(" ","")
     for f in baiboly.rglob("*.json"):
         with open (f,encoding="utf-8") as l:
@@ -37,6 +35,7 @@ async def contenu_livre(nom_livre:Annotated[str,Path()]):
             return premier_chapitre
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre non trouvé")
 
+#affichage d'un verset d"un livre
                     
 
             

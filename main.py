@@ -8,13 +8,13 @@ app = FastAPI()
 
 baiboly=Path("baiboly-json")
 
-def trouve_livre (nom:str,chapitre:str):
+def trouve_livre (nom:str,chapitre:int):
     for f in baiboly.rglob('*.json'):
         with open(f,encoding="utf-8") as l:
             livre=json.load(l)
             anarana=livre["meta"]["name"].lower().replace(" ","")
-            if nom==anarana:
-                return livre[chapitre]
+            if nom in anarana:
+                return livre[str(chapitre)]
     return False
 
 
@@ -36,7 +36,10 @@ async def liste_livre():
 @app.get("/livre",status_code=status.HTTP_200_OK)
 async def contenu_livre(nom_livre:Annotated[str,Query(min_length=2)]):
     nom_livre=nom_livre.lower().replace(" ","")
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre non trouvé")
+    reponse=trouve_livre(nom_livre,1)
+    if not reponse:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre non trouvé")
+    return reponse
 
 #affichage d'un verset d"un livre
                     

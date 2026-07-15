@@ -16,6 +16,8 @@ def trouve_livre (nom:str,chap:int,fast_rech:bool):
             if (nom in anarana) and fast_rech:
                 return livre[str(chap)]
             elif nom==anarana and (not fast_rech):
+                if chap > livre["meta"]["chapter_number"]:
+                    return False
                 return livre[str(chap)]
     return False
 
@@ -47,15 +49,21 @@ async def contenu_livre(nom_livre:Annotated[str,Query(min_length=2)]):
 @app.get('/livre/{nom_livre}',status_code=status.HTTP_200_OK)
 async def verset(nom_livre:str,chapitre:Annotated[int,Query(gt=0)],deb_verset:int|None=None,fin_verset:int|None=None):
     nom_livre =nom_livre.lower().replace(" ","")
+    res:Dict[str,str]
     reponse= trouve_livre(nom_livre,chap=chapitre,fast_rech=False)
     if not reponse:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre non trouvé")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre ou chapitre non trouvé")
     elif deb_verset==None and fin_verset==None:
         return reponse
     elif deb_verset != None:
-        return {k:v for k,v in reponse.items() if int(k)>=deb_verset}
+        res={k:v for k,v in reponse.items() if int(k)>=deb_verset}
     elif fin_verset != None:
-        return {k:v for k,v in reponse.items() if int(k)<=fin_verset}
+        res={k:v for k,v in reponse.items() if int(k)<=fin_verset}
+    if len(res)==0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="il n'y a pas ce verset")
+    return res
+    
+    
     
 
 

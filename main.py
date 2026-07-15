@@ -49,7 +49,7 @@ async def contenu_livre(nom_livre:Annotated[str,Query(min_length=2)]):
 @app.get('/livre/{nom_livre}',status_code=status.HTTP_200_OK)
 async def verset(nom_livre:str,chapitre:Annotated[int,Query(gt=0)],deb_verset:int|None=None,fin_verset:int|None=None):
     nom_livre =nom_livre.lower().replace(" ","")
-    res:Dict[str,str]
+    res:Dict[str,str]={"first":"value"}
     reponse= trouve_livre(nom_livre,chap=chapitre,fast_rech=False)
     if not reponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre ou chapitre non trouvé")

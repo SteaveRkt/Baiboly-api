@@ -41,6 +41,7 @@ async def liste_livre():
             dic:Dict[str,Any]={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"]}
             data.append(dic)
     data=sorted(data,key=lambda x:x["id"])#for x in data return x["id"]
+    print(data)
     return data
 
 

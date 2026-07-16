@@ -1,10 +1,18 @@
 from typing import Annotated,List,Dict,Any
 from fastapi import FastAPI, HTTPException,Path,Query
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from starlette import status
 import json
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 baiboly=Path("baiboly-json")
 

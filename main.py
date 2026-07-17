@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from starlette import status
 import json
-
+import random
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -71,7 +71,19 @@ async def verset(nom_livre:str,chapitre:Annotated[int,Query(gt=0)],deb_verset:in
     if len(res)==0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="il n'y a pas ce verset")
     return res
+# verset aléatoire
+@app.get("/random",status_code=status.HTTP_200_OK)
+async def random_verset():
+    liste_fichier=[f for f in baiboly.rglob("*.json")]
+    random_fichier=random.choice(liste_fichier)
+    with open (random_fichier,encoding="utf-8") as f:
+        rd=json.load(f)
+        nom_livre:str=rd["meta"]["name"]
+        len_chapitre:str=rd["meta"]["chapter_number"]
+        chapitre_aleatoire:int =random.randint(1,int(len_chapitre))
+    return rd[len_chapitre]
     
+
     
     
 

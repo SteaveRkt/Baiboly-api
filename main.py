@@ -16,40 +16,44 @@ app.add_middleware(
 
 baiboly=Path("baiboly-json")
 
-def trouve_livre (nom:str,chap:int,fast_rech:bool):
+def trouve_livre (nom:str,chap:int):
     for f in baiboly.rglob('*.json'):
         with open(f,encoding="utf-8") as l:
             livre=json.load(l)
             anarana=livre["meta"]["name"].lower().replace(" ","")
-            if (nom in anarana) and fast_rech:
-                return livre[str(chap)]
-            elif nom==anarana and (not fast_rech):
+            if nom==anarana:
                 if chap > livre["meta"]["chapter_number"]:
                     return False
                 return livre[str(chap)]
     return False
 
-
-#liste des livres
-@app.get("/liste",status_code=status.HTTP_200_OK)
-async def liste_livre():
+def liste_des_livre(cacher_source:bool)->List[Dict[str,str]]:
     data : List[Dict[str,Any]]=[]
     for f in baiboly.rglob("*.json"):
         with open(f,encoding="utf-8") as b:
             boky=json.load(b)
             anarana=boky["meta"]["name"]
-            dic:Dict[str,Any]={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"]}
+            if not(cacher_source):
+                dic:Dict[str,Any]={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"],"lien":f.absolute()}
+            else:
+                 dic:Dict[str,Any]={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"]}
             data.append(dic)
     data=sorted(data,key=lambda x:x["id"])#for x in data return x["id"]
-    print(data)
     return data
+
+
+#liste des livres
+@app.get("/liste",status_code=status.HTTP_200_OK)
+async def liste_livre():
+    reponse=liste_des_livre(cacher_source=True)
+    return reponse
 
 
 #premier chapitre d'un livre
 @app.get("/livre",status_code=status.HTTP_200_OK)
 async def contenu_livre(nom_livre:Annotated[str,Query(min_length=2)]):
     nom_livre=nom_livre.lower().replace(" ","")
-    reponse=trouve_livre(nom_livre,1,True)
+    reponse=trouve_livre(nom_livre,1)
     if not reponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre non trouvé")
     return reponse
@@ -59,7 +63,7 @@ async def contenu_livre(nom_livre:Annotated[str,Query(min_length=2)]):
 async def verset(nom_livre:str,chapitre:Annotated[int,Query(gt=0)],deb_verset:int|None=None,fin_verset:int|None=None):
     nom_livre =nom_livre.lower().replace(" ","")
     res:Dict[str,str]={"first":"value"}
-    reponse= trouve_livre(nom_livre,chap=chapitre,fast_rech=False)
+    reponse= trouve_livre(nom_livre,chap=chapitre)
     if not reponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre ou chapitre non trouvé")
     elif deb_verset==None and fin_verset==None:
@@ -80,8 +84,10 @@ async def random_verset():
         rd=json.load(f)
         nom_livre:str=rd["meta"]["name"]
         len_chapitre:str=rd["meta"]["chapter_number"]
-        chapitre_aleatoire:int =random.randint(1,int(len_chapitre))
-    return rd[len_chapitre]
+        chapitre_aleatoire:str=str(random.randint(1,int(len_chapitre)))
+        verset_aleatoire:str =str(random.randint(1,len(rd[chapitre_aleatoire])))
+    reponse:Dict[str,str]={"nom_du_live":nom_livre,"chapitre":chapitre_aleatoire,"verset":verset_aleatoire,"content":rd[chapitre_aleatoire][verset_aleatoire]}
+    return reponse
     
 
     

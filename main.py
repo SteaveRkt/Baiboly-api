@@ -1,13 +1,15 @@
 from typing import Annotated,Dict
 from fastapi import FastAPI, HTTPException,Path,Query
 from fastapi.middleware.cors import CORSMiddleware
-from pathlib import Path
 from starlette import status
 import json
 import random
 from utils.liste_des_livres import liste_des_livre
 from utils.trouve_livre import trouve_livre
+
 app = FastAPI()
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,7 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-baiboly=Path("baiboly-json")
 
 
 
@@ -29,16 +30,16 @@ async def liste_livre():
 
 #premier chapitre d'un livre
 @app.get("/livre",status_code=status.HTTP_200_OK)
-async def contenu_livre(nom_livre:Annotated[str,Query(min_length=2)]):
+async def contenu_livre(nom_livre:Annotated[str,Query(min_length=2)])->Dict[str,str]:
     nom_livre=nom_livre.lower().replace(" ","")
     reponse=trouve_livre(nom_livre,1)
     if not reponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre non trouvé")
-    return reponse
-
+    return {k:v for k,v in reponse.items() if int(k)<=5}
+            
 #affichage d'un verset d"un livre
 @app.get('/livre/{nom_livre}',status_code=status.HTTP_200_OK)
-async def verset(nom_livre:str,chapitre:Annotated[int,Query(gt=0)],deb_verset:int|None=None,fin_verset:int|None=None):
+async def verset(nom_livre:str=Path(),chapitre:int=Query(gt=0),deb_verset:int|None=None,fin_verset:int|None=None):
     nom_livre =nom_livre.lower().replace(" ","")
     res:Dict[str,str]={"first":"value"}
     reponse= trouve_livre(nom_livre,chap=chapitre)

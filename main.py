@@ -1,10 +1,12 @@
-from typing import Annotated,List,Dict,Any
+from typing import Annotated,Dict
 from fastapi import FastAPI, HTTPException,Path,Query
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from starlette import status
 import json
 import random
+from utils.liste_des_livres import liste_des_livre
+from utils.trouve_livre import trouve_livre
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -16,30 +18,6 @@ app.add_middleware(
 
 baiboly=Path("baiboly-json")
 
-def trouve_livre (nom:str,chap:int):
-    for f in baiboly.rglob('*.json'):
-        with open(f,encoding="utf-8") as l:
-            livre=json.load(l)
-            anarana=livre["meta"]["name"].lower().replace(" ","")
-            if nom==anarana:
-                if chap > livre["meta"]["chapter_number"]:
-                    return False
-                return livre[str(chap)]
-    return False
-
-def liste_des_livre(cacher_source:bool)->List[Dict[str,str]]:
-    data : List[Dict[str,Any]]=[]
-    for f in baiboly.rglob("*.json"):
-        with open(f,encoding="utf-8") as b:
-            boky=json.load(b)
-            anarana=boky["meta"]["name"]
-            if not(cacher_source):
-                dic:Dict[str,Any]={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"],"lien":f.absolute()}
-            else:
-                 dic:Dict[str,Any]={"id":boky["meta"]["order"],"titre":anarana,"abreviation":anarana[:3].upper(),"testameta":f.parent.stem.split()[1],"nombre_chapitre":boky["meta"]["chapter_number"]}
-            data.append(dic)
-    data=sorted(data,key=lambda x:x["id"])#for x in data return x["id"]
-    return data
 
 
 #liste des livres
@@ -78,9 +56,9 @@ async def verset(nom_livre:str,chapitre:Annotated[int,Query(gt=0)],deb_verset:in
 # verset aléatoire
 @app.get("/random",status_code=status.HTTP_200_OK)
 async def random_verset():
-    liste_fichier=[f for f in baiboly.rglob("*.json")]
+    liste_fichier=liste_des_livre(cacher_source=False)
     random_fichier=random.choice(liste_fichier)
-    with open (random_fichier,encoding="utf-8") as f:
+    with open (random_fichier["lien"],encoding="utf-8") as f:
         rd=json.load(f)
         nom_livre:str=rd["meta"]["name"]
         len_chapitre:str=rd["meta"]["chapter_number"]

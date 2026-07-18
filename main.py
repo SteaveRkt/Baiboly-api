@@ -6,6 +6,7 @@ import json
 import random
 from utils.liste_des_livres import liste_des_livre
 from utils.trouve_livre import trouve_livre
+from utils.trouve_mot import trouver_tout_les_mot
 
 app = FastAPI()
 
@@ -18,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+liste_fichier=liste_des_livre(cacher_source=False)
 
 
 #liste des livres
@@ -36,10 +37,11 @@ async def contenu_livre(nom_livre:Annotated[str,Query(min_length=2)])->Dict[str,
     if not reponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Livre non trouvé")
     return {k:v for k,v in reponse.items() if int(k)<=5}
-            
+
+
 #affichage d'un verset d"un livre
 @app.get('/livre/{nom_livre}',status_code=status.HTTP_200_OK)
-async def verset(nom_livre:str=Path(),chapitre:int=Query(gt=0),deb_verset:int|None=None,fin_verset:int|None=None):
+async def verset_livre(nom_livre:str=Path(),chapitre:int=Query(gt=0),deb_verset:int|None=None,fin_verset:int|None=None):
     nom_livre =nom_livre.lower().replace(" ","")
     res:Dict[str,str]={"first":"value"}
     reponse= trouve_livre(nom_livre,chap=chapitre)
@@ -54,10 +56,11 @@ async def verset(nom_livre:str=Path(),chapitre:int=Query(gt=0),deb_verset:int|No
     if len(res)==0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="il n'y a pas ce verset")
     return res
+
+
 # verset aléatoire
 @app.get("/random",status_code=status.HTTP_200_OK)
 async def random_verset():
-    liste_fichier=liste_des_livre(cacher_source=False)
     random_fichier=random.choice(liste_fichier)
     with open (random_fichier["lien"],encoding="utf-8") as f:
         rd=json.load(f)
@@ -67,6 +70,17 @@ async def random_verset():
         verset_aleatoire:str =str(random.randint(1,len(rd[chapitre_aleatoire])))
     reponse:Dict[str,str]={"nom_du_live":nom_livre,"chapitre":chapitre_aleatoire,"verset":verset_aleatoire,"content":rd[chapitre_aleatoire][verset_aleatoire]}
     return reponse
+
+
+#recherche d'un mot dans la bible
+@app.get("/mot/{mot}",status_code=status.HTTP_200_OK)
+async def trouver_mot(mot:str=Path(min_length=2)):
+    reponse=trouver_tout_les_mot(mot)
+    return reponse
+
+            
+
+
     
 
     
